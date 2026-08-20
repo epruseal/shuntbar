@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 import SwiftUI
 
 struct SettingsView: View {
@@ -8,6 +9,8 @@ struct SettingsView: View {
     @State private var token = ""
     @State private var tokenLoaded = false
     @State private var saveError: String?
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @State private var loginItemError: String?
 
     var body: some View {
         Form {
@@ -31,6 +34,15 @@ struct SettingsView: View {
                 Text("1 minute").tag(60.0)
                 Text("5 minutes").tag(300.0)
             }
+            Toggle("Start at login", isOn: $launchAtLogin)
+                .onChange(of: launchAtLogin) { _, enable in
+                    setLaunchAtLogin(enable)
+                }
+            if let loginItemError {
+                Text(loginItemError)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
             HStack {
                 if let saveError {
                     Text(saveError)
@@ -52,6 +64,8 @@ struct SettingsView: View {
                 token = Keychain.loadToken() ?? ""
                 tokenLoaded = true
             }
+            // The user may have changed the login item in System Settings.
+            launchAtLogin = SMAppService.mainApp.status == .enabled
         }
     }
 
@@ -62,5 +76,23 @@ struct SettingsView: View {
         }
         saveError = nil
         store.refreshNow()
+    }
+
+    /// Register/unregister with SMAppService; only works when running from a
+    /// real .app bundle (swift run has no bundle to register).
+    private func setLaunchAtLogin(_ enable: Bool) {
+        let service = SMAppService.mainApp
+        guard enable != (service.status == .enabled) else { return }
+        do {
+            if enable {
+                try service.register()
+            } else {
+                try service.unregister()
+            }
+            loginItemError = nil
+        } catch {
+            loginItemError = error.localizedDescription
+            launchAtLogin = service.status == .enabled
+        }
     }
 }

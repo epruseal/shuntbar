@@ -45,8 +45,10 @@ Press **Apply** to save the token and refresh immediately.
 
 ## Start at login
 
-System Settings → General → Login Items → add Shuntbar under
-"Open at Login".
+Enable the "Start at login" checkbox in the app's Settings. It uses
+SMAppService, so the same entry also shows up (and can be managed)
+under System Settings → General → Login Items. The checkbox only works
+when the app runs from a real .app bundle.
 
 ## Notes
 
