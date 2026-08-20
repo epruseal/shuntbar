@@ -65,6 +65,9 @@ struct PoolView: View {
             .buttonStyle(.borderless)
             .help("Quit Shuntbar")
         }
+        // The standalone window hands initial key focus to the first
+        // control, which paints a focus ring on these icon-only buttons.
+        .focusEffectDisabled()
     }
 
     private var unconfigured: some View {
