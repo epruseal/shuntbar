@@ -22,6 +22,9 @@ struct Account: Decodable, Equatable {
     let nearQuota: Bool
     let hasState: Bool
     let status: String?
+    /// Subscription plan label, e.g. "max", "max 20x", "pro". Absent on
+    /// older servers.
+    let plan: String?
     let cooldownSecsRemaining: Int?
     let cooldownFableSecsRemaining: Int?
     /// Burn-rate headroom in seconds; negative means the account is projected
@@ -37,7 +40,7 @@ struct Account: Decodable, Equatable {
     let reset7dOi: Int?
 
     enum CodingKeys: String, CodingKey {
-        case name, priority, disabled, available, status
+        case name, priority, disabled, available, status, plan
         case nearQuota = "near_quota"
         case hasState = "has_state"
         case cooldownSecsRemaining = "cooldown_secs_remaining"

@@ -140,6 +140,15 @@ struct AccountRow: View {
                     .frame(width: 8, height: 8)
                 Text(account.name)
                     .font(.callout.weight(.medium))
+                if let plan = account.plan {
+                    Text(titleCased(plan))
+                        .font(.caption2)
+                        .padding(.vertical, 1)
+                        .padding(.horizontal, 5)
+                        .background(Color.secondary.opacity(0.15))
+                        .clipShape(Capsule())
+                        .foregroundStyle(.secondary)
+                }
                 Text("P\(account.priority)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -240,5 +249,12 @@ struct AccountRow: View {
 
     private func signedHours(_ seconds: Int) -> String {
         String(format: "%+.1fh", Double(seconds) / 3600)
+    }
+
+    private func titleCased(_ text: String) -> String {
+        text.split(separator: " ").map { word in
+            guard let first = word.first else { return String(word) }
+            return String(first).uppercased() + word.dropFirst()
+        }.joined(separator: " ")
     }
 }

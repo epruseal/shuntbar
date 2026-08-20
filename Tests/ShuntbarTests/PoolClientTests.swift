@@ -20,6 +20,7 @@ final class PoolClientTests: XCTestCase {
                         "headroom_secs": null,
                         "name": "alice-claude",
                         "near_quota": true,
+                        "plan": "max",
                         "priority": 100,
                         "reset_5h": 1787211600,
                         "reset_7d": 1787511600,
@@ -100,10 +101,12 @@ final class PoolClientTests: XCTestCase {
         XCTAssertEqual(alice.reset5h, 1_787_211_600)
         XCTAssertEqual(alice.utilization7d, 1.0)
         XCTAssertEqual(alice.utilization7dOi, 0.76)
+        XCTAssertEqual(alice.plan, "max")
 
         let bob = anthropic.accounts[1]
         XCTAssertEqual(bob.headroomSecs, -13922)
         XCTAssertTrue(bob.available)
+        XCTAssertNil(bob.plan)
 
         let codex = pool.providers[1].accounts[0]
         XCTAssertEqual(codex.priority, 50)
@@ -129,6 +132,7 @@ final class PoolClientTests: XCTestCase {
         XCTAssertNil(account.utilization5h)
         XCTAssertNil(account.cooldownSecsRemaining)
         XCTAssertNil(account.status)
+        XCTAssertNil(account.plan)
     }
 
     func testPoolURLValidation() {
