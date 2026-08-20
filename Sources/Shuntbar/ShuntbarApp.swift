@@ -18,7 +18,18 @@ struct ShuntbarApp: App {
         // pool visible all the time. It keeps updating on the polling cycle.
         Window("Shunt Pool", id: "pool") {
             PoolView(store: store, showsWindowButton: false)
-                .onAppear { NSApp.activate(ignoringOtherApps: true) }
+                .onAppear {
+                    NSApp.activate(ignoringOtherApps: true)
+                    // The window hands initial key focus to the first enabled
+                    // control and paints an AppKit key-view ring on it, which
+                    // .focusEffectDisabled() does not cover. Drop the initial
+                    // focus once the window is up; tabbing still works.
+                    DispatchQueue.main.async {
+                        for window in NSApp.windows where window.title == "Shunt Pool" {
+                            window.makeFirstResponder(nil)
+                        }
+                    }
+                }
         }
         .windowResizability(.contentSize)
 
