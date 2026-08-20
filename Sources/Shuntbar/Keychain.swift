@@ -26,11 +26,13 @@ enum Keychain {
         return String(data: data, encoding: .utf8)
     }
 
-    static func saveToken(_ token: String) {
+    /// Returns false when the Keychain refused the write (for example the
+    /// user denied the access prompt), so the UI can surface it.
+    @discardableResult
+    static func saveToken(_ token: String) -> Bool {
         let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            deleteToken()
-            return
+            return deleteToken()
         }
         let data = Data(trimmed.utf8)
         let update = [kSecValueData as String: data]
@@ -38,11 +40,14 @@ enum Keychain {
         if status == errSecItemNotFound {
             var add = baseQuery
             add[kSecValueData as String] = data
-            SecItemAdd(add as CFDictionary, nil)
+            return SecItemAdd(add as CFDictionary, nil) == errSecSuccess
         }
+        return status == errSecSuccess
     }
 
-    static func deleteToken() {
-        SecItemDelete(baseQuery as CFDictionary)
+    @discardableResult
+    static func deleteToken() -> Bool {
+        let status = SecItemDelete(baseQuery as CFDictionary)
+        return status == errSecSuccess || status == errSecItemNotFound
     }
 }

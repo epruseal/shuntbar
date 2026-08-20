@@ -7,7 +7,7 @@
     <key>CFBundleExecutable</key>
     <string>Shuntbar</string>
     <key>CFBundleIdentifier</key>
-    <string>ai.please.shuntbar</string>
+    <string>dev.shuntbar</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>

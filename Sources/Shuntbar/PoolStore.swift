@@ -17,6 +17,10 @@ final class PoolStore {
     private(set) var lastUpdated: Date?
     private(set) var isRefreshing = false
     private var loopTask: Task<Void, Never>?
+    /// Set when refresh() is called while a fetch is in flight, so the
+    /// request is honored right after instead of being dropped (the settings
+    /// may have changed mid-fetch).
+    private var rerunRequested = false
 
     /// Drives the menu bar warning icon: fetch failed, not configured yet, or
     /// some provider has no available account left.
@@ -56,7 +60,19 @@ final class PoolStore {
     }
 
     func refresh() async {
-        if isRefreshing { return }
+        if isRefreshing {
+            rerunRequested = true
+            return
+        }
+        isRefreshing = true
+        defer { isRefreshing = false }
+        repeat {
+            rerunRequested = false
+            await fetchOnce()
+        } while rerunRequested
+    }
+
+    private func fetchOnce() async {
         let host = (UserDefaults.standard.string(forKey: Self.hostKey) ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let token = Keychain.loadToken() ?? ""
@@ -64,8 +80,6 @@ final class PoolStore {
             state = .unconfigured
             return
         }
-        isRefreshing = true
-        defer { isRefreshing = false }
         do {
             let pool = try await PoolClient.fetch(host: host, token: token)
             state = .loaded(pool)

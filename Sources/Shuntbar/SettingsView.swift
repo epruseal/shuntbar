@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage(PoolStore.intervalKey) private var interval = 60.0
     @State private var token = ""
     @State private var tokenLoaded = false
+    @State private var saveError: String?
 
     var body: some View {
         Form {
@@ -31,6 +32,11 @@ struct SettingsView: View {
                 Text("5 minutes").tag(300.0)
             }
             HStack {
+                if let saveError {
+                    Text(saveError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
                 Spacer()
                 Button("Apply") { apply() }
                     .keyboardShortcut(.defaultAction)
@@ -50,7 +56,11 @@ struct SettingsView: View {
     }
 
     private func apply() {
-        Keychain.saveToken(token)
+        guard Keychain.saveToken(token) else {
+            saveError = "Could not write the token to the Keychain."
+            return
+        }
+        saveError = nil
         store.refreshNow()
     }
 }
