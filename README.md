@@ -23,6 +23,17 @@ No third-party dependencies; the app uses only system frameworks.
 
 ## Build and install
 
+Download the zip from the [Releases](../../releases) page, unzip, and move
+`Shuntbar.app` to `/Applications`. The bundle is ad-hoc signed (no
+Developer ID), so macOS quarantines the download; clear it once before
+the first launch:
+
+```sh
+xattr -d com.apple.quarantine /Applications/Shuntbar.app
+```
+
+Or build from source, which needs no quarantine step:
+
 ```sh
 make app
 cp -R Shuntbar.app /Applications/
