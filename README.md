@@ -12,7 +12,8 @@ Shuntbar polls `GET /admin/pool` and shows, per provider and per account:
 
 The menu bar shows only an icon; it switches to a warning triangle when the
 fetch fails, the app is not configured yet, or any provider has no available
-account left.
+account left. The window button in the popover opens the same view as a
+regular window that stays open and keeps refreshing.
 
 ## Requirements
 

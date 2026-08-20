@@ -3,6 +3,9 @@ import SwiftUI
 
 struct PoolView: View {
     let store: PoolStore
+    /// Hidden when this view already lives in the standalone window.
+    var showsWindowButton = true
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -39,6 +42,16 @@ struct PoolView: View {
             .buttonStyle(.borderless)
             .disabled(store.isRefreshing)
             .help("Refresh now")
+            if showsWindowButton {
+                Button {
+                    openWindow(id: "pool")
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Image(systemName: "macwindow")
+                }
+                .buttonStyle(.borderless)
+                .help("Open as a window")
+            }
             SettingsLink {
                 Image(systemName: "gearshape")
             }

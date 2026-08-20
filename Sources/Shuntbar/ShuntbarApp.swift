@@ -14,6 +14,14 @@ struct ShuntbarApp: App {
         }
         .menuBarExtraStyle(.window)
 
+        // Standalone, stay-open copy of the popover for people who want the
+        // pool visible all the time. It keeps updating on the polling cycle.
+        Window("Shunt Pool", id: "pool") {
+            PoolView(store: store, showsWindowButton: false)
+                .onAppear { NSApp.activate(ignoringOtherApps: true) }
+        }
+        .windowResizability(.contentSize)
+
         Settings {
             SettingsView(store: store)
         }
