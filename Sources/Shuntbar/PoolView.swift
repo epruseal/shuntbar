@@ -6,6 +6,7 @@ struct PoolView: View {
     /// Hidden when this view already lives in the standalone window.
     var showsWindowButton = true
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -46,6 +47,7 @@ struct PoolView: View {
                 Button {
                     openWindow(id: "pool")
                     NSApp.activate(ignoringOtherApps: true)
+                    closePopover()
                 } label: {
                     Image(systemName: "macwindow")
                 }
@@ -114,6 +116,15 @@ struct PoolView: View {
     private func sorted(_ accounts: [Account]) -> [Account] {
         accounts.sorted {
             ($0.priority, $0.name) < ($1.priority, $1.name)
+        }
+    }
+
+    private func closePopover() {
+        dismiss()
+        // Fallback for macOS versions where dismiss() is a no-op inside
+        // MenuBarExtra content: close the status-bar panel directly.
+        for window in NSApp.windows where window.className.contains("MenuBarExtraWindow") {
+            window.close()
         }
     }
 }
