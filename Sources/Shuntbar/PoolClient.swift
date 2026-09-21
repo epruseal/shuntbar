@@ -1,6 +1,6 @@
 import Foundation
 
-// Wire types mirror shunt's `GET /admin/pool` response (src/accounts.rs
+// Wire types mirror shunt's `GET /admin/api/pool` response (src/accounts.rs
 // AccountSnapshot). Explicit CodingKeys because keys like `utilization_5h`
 // and `utilization_7d_oi` do not round-trip through convertFromSnakeCase.
 
@@ -72,10 +72,18 @@ enum ShuntError: LocalizedError, Equatable {
 }
 
 enum PoolClient {
-    static func poolURL(host: String) -> URL? {
+    // shunt moved its admin JSON endpoints under `/admin/api` when the
+    // dashboard became a routed shell (pleaseai/shunt#600); the bare
+    // `/admin/*` paths now fall through to that shell and answer with HTML.
+    // Try the current path first and fall back to the legacy one, so the app
+    // keeps working against a server that has not been updated yet.
+    static let poolPath = "/admin/api/pool"
+    static let legacyPoolPath = "/admin/pool"
+
+    static func poolURL(host: String, path: String = poolPath) -> URL? {
         var base = host.trimmingCharacters(in: .whitespacesAndNewlines)
         while base.hasSuffix("/") { base.removeLast() }
-        guard let url = URL(string: base + "/admin/pool"),
+        guard let url = URL(string: base + path),
               let scheme = url.scheme?.lowercased(),
               ["http", "https"].contains(scheme),
               url.host != nil
@@ -84,7 +92,19 @@ enum PoolClient {
     }
 
     static func fetch(host: String, token: String) async throws -> PoolResponse {
-        guard let url = poolURL(host: host) else { throw ShuntError.invalidURL }
+        do {
+            return try await fetch(host: host, token: token, path: poolPath)
+        } catch ShuntError.server(404) {
+            return try await fetch(host: host, token: token, path: legacyPoolPath)
+        }
+    }
+
+    private static func fetch(
+        host: String,
+        token: String,
+        path: String
+    ) async throws -> PoolResponse {
+        guard let url = poolURL(host: host, path: path) else { throw ShuntError.invalidURL }
         var request = URLRequest(url: url, timeoutInterval: 5)
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(token, forHTTPHeaderField: "x-shunt-admin-token")

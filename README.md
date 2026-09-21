@@ -3,7 +3,7 @@
 A macOS menu bar app that shows account-pool usage of a
 [shunt](https://github.com/pleaseai/shunt) server at a glance.
 
-Shuntbar polls `GET /admin/pool` and shows, per provider and per account:
+Shuntbar polls `GET /admin/api/pool` and shows, per provider and per account:
 
 - utilization bars for the 5h, 7d, and 7d Fable-scoped quota windows
 - reset times (absolute and remaining)
