@@ -96,6 +96,12 @@ enum PoolClient {
             return try await fetch(host: host, token: token, path: poolPath)
         } catch ShuntError.server(404) {
             return try await fetch(host: host, token: token, path: legacyPoolPath)
+        } catch ShuntError.decoding {
+            // An older server behind a reverse proxy that rewrites unknown
+            // paths to an index page answers 200 with HTML instead of 404, so
+            // the miss surfaces as a decode failure. Retry the legacy path,
+            // and report that path's own error if it fails too.
+            return try await fetch(host: host, token: token, path: legacyPoolPath)
         }
     }
 
