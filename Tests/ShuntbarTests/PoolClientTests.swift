@@ -2,7 +2,7 @@ import XCTest
 @testable import Shuntbar
 
 final class PoolClientTests: XCTestCase {
-    // Anonymized copy of a real /admin/pool response: one account with every
+    // Anonymized copy of a real /admin/api/pool response: one account with every
     // field populated, one with the null-heavy shape codex accounts produce.
     private let fixture = """
     {
@@ -138,15 +138,25 @@ final class PoolClientTests: XCTestCase {
     func testPoolURLValidation() {
         XCTAssertEqual(
             PoolClient.poolURL(host: "http://localhost:3001")?.absoluteString,
-            "http://localhost:3001/admin/pool"
+            "http://localhost:3001/admin/api/pool"
         )
         XCTAssertEqual(
             PoolClient.poolURL(host: " https://example.com:3001/ ")?.absoluteString,
-            "https://example.com:3001/admin/pool"
+            "https://example.com:3001/admin/api/pool"
         )
         XCTAssertNil(PoolClient.poolURL(host: "ftp://example.com"))
         XCTAssertNil(PoolClient.poolURL(host: "localhost:3001"))
         XCTAssertNil(PoolClient.poolURL(host: ""))
+    }
+
+    // The legacy path stays reachable so the app still works against a shunt
+    // that predates the routed admin shell.
+    func testLegacyPoolURLKeepsTheOldPath() {
+        XCTAssertEqual(
+            PoolClient.poolURL(host: "http://localhost:3001", path: PoolClient.legacyPoolPath)?
+                .absoluteString,
+            "http://localhost:3001/admin/pool"
+        )
     }
 
     // Live integration check, opt-in via environment so no personal endpoint
