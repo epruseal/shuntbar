@@ -23,6 +23,10 @@ struct PoolView: View {
         }
         .padding(12)
         .frame(width: 400)
+        // Pin the height to the content. With a flexible height the
+        // menu bar panel keeps an earlier, larger size and centers the
+        // content in it, which leaves empty bands above and below.
+        .fixedSize(horizontal: false, vertical: true)
         .onAppear { store.refreshNow() }
     }
 
@@ -141,7 +145,7 @@ struct AccountRow: View {
                 Text(account.name)
                     .font(.callout.weight(.medium))
                 if let plan = account.plan {
-                    Text(titleCased(plan))
+                    Text(planDisplayName(plan))
                         .font(.caption2)
                         .padding(.vertical, 1)
                         .padding(.horizontal, 5)
@@ -178,9 +182,8 @@ struct AccountRow: View {
                 Text(label)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                ProgressView(value: min(max(utilization, 0), 1))
-                    .tint(barColor(utilization))
-                    .frame(width: 110)
+                UsageBar(fraction: utilization, color: barColor(utilization))
+                    .frame(width: 110, height: 6)
                 Text(utilization, format: .percent.precision(.fractionLength(0)))
                     .font(.caption.monospacedDigit())
                     .gridColumnAlignment(.trailing)
@@ -251,10 +254,52 @@ struct AccountRow: View {
         String(format: "%+.1fh", Double(seconds) / 3600)
     }
 
-    private func titleCased(_ text: String) -> String {
-        text.split(separator: " ").map { word in
-            guard let first = word.first else { return String(word) }
-            return String(first).uppercased() + word.dropFirst()
-        }.joined(separator: " ")
+}
+
+/// A plain capsule meter. ProgressView drops its tint and draws in the
+/// inactive gray whenever its window is not key, so a full red bar in the
+/// popover or a background window reads like an empty track.
+struct UsageBar: View {
+    let fraction: Double
+    let color: Color
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.primary.opacity(0.12))
+                Capsule()
+                    .fill(color)
+                    .frame(width: geometry.size.width * min(max(fraction, 0), 1))
+            }
+        }
+        .accessibilityElement()
+        .accessibilityValue(Text(fraction, format: .percent.precision(.fractionLength(0))))
     }
+}
+
+/// Display names for raw plan codes. ChatGPT accounts report the
+/// `chatgpt_plan_type` claim verbatim; the names follow the Codex CLI status
+/// line (openai/codex `codex-rs/tui/src/subscription.rs`). Bare "pro" is
+/// left alone because Claude accounts use it too. Unknown codes fall back to
+/// title case with underscores turned into spaces.
+func planDisplayName(_ plan: String) -> String {
+    let known: [String: String] = [
+        "prolite": "Pro 100",
+        "promax": "Pro 500",
+        "team": "Business",
+        "self_serve_business_usage_based": "Business",
+        "self_serve_business_prolite": "Business Premium",
+        "enterprise_cbp_automation": "Enterprise (Automation)",
+        "enterprise_cbp_usage_based": "Enterprise",
+        "ent26": "Enterprise",
+        "hc": "Enterprise",
+        "edu_plus": "Edu Plus",
+        "edu_pro": "Edu Pro",
+        "sci_plus": "Sci Plus",
+    ]
+    if let name = known[plan.lowercased()] { return name }
+    return plan.replacingOccurrences(of: "_", with: " ")
+        .split(separator: " ")
+        .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+        .joined(separator: " ")
 }

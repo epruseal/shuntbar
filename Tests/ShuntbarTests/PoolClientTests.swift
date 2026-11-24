@@ -159,6 +159,14 @@ final class PoolClientTests: XCTestCase {
         )
     }
 
+    func testPlanDisplayNames() {
+        XCTAssertEqual(planDisplayName("self_serve_business_prolite"), "Business Premium")
+        XCTAssertEqual(planDisplayName("prolite"), "Pro 100")
+        XCTAssertEqual(planDisplayName("pro"), "Pro")
+        XCTAssertEqual(planDisplayName("max 20x"), "Max 20x")
+        XCTAssertEqual(planDisplayName("some_new_plan"), "Some New Plan")
+    }
+
     // Live integration check, opt-in via environment so no personal endpoint
     // ships in the repo: SHUNTBAR_TEST_HOST / SHUNTBAR_TEST_TOKEN.
     func testLiveFetchIfConfigured() async throws {
